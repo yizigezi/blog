@@ -1,0 +1,49 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { AUTHORS, withBase } from '../consts';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }).format(date);
+---
+
+<BaseLayout>
+  <section class="post-list">
+    {
+      posts.map((post) => {
+        const author = AUTHORS[post.data.author];
+        return (
+          <a class="post-row" href={withBase(`/posts/${post.id}/`)}>
+            <div class="post-row__meta">
+              <time class="meta" datetime={post.data.pubDate.toISOString()}>
+                {formatDate(post.data.pubDate)}
+              </time>
+              <span class="author">
+                {author.mark} {author.name}
+              </span>
+            </div>
+            <h2 class="post-row__title">{post.data.title}</h2>
+            <p class="post-row__desc">{post.data.description}</p>
+            <div class="post-row__meta">
+              {post.data.tags.map((tag) => (
+                <span class="tag">{tag}</span>
+              ))}
+            </div>
+          </a>
+        );
+      })
+    }
+  </section>
+
+  {
+    !posts.length && (
+      <p class="meta" style="margin-top: 40px;">
+        还没有文章。
+      </p>
+    )
+  }
+</BaseLayout>

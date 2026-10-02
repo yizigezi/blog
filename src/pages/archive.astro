@@ -1,0 +1,52 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { AUTHORS, withBase } from '../consts';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+
+const byYear = new Map<number, typeof posts>();
+posts.forEach((post) => {
+  const year = post.data.pubDate.getFullYear();
+  if (!byYear.has(year)) byYear.set(year, []);
+  byYear.get(year)!.push(post);
+});
+const years = [...byYear.keys()].sort((a, b) => b - a);
+
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat('zh-CN', { month: '2-digit', day: '2-digit' }).format(date);
+---
+
+<BaseLayout title="归档" description="全部文章归档">
+  <div class="page-head">
+    <p class="eyebrow">归档</p>
+    <h1>共 {posts.length} 篇</h1>
+    <hr class="rule-double" />
+  </div>
+
+  {
+    years.map((year) => (
+      <section class="archive-year">
+        <h2>{year}</h2>
+        <div class="archive-list">
+          {byYear.get(year)!.map((post) => {
+            const author = AUTHORS[post.data.author];
+            return (
+              <a class="archive-item" href={withBase(`/posts/${post.id}/`)}>
+                <time class="archive-item__date" datetime={post.data.pubDate.toISOString()}>
+                  {formatDate(post.data.pubDate)}
+                </time>
+                <span class="archive-item__title">{post.data.title}</span>
+                <span class="author">
+                  {author.mark} {author.name}
+                </span>
+              </a>
+            );
+          })}
+        </div>
+      </section>
+    ))
+  }
+</BaseLayout>

@@ -1,0 +1,62 @@
+---
+import '../styles/global.css';
+import { SITE_TITLE, SITE_SUBTITLE, withBase } from '../consts';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+const pageTitle = title ? `${title} - ${SITE_TITLE}` : `${SITE_TITLE} - ${SITE_SUBTITLE}`;
+
+const nav = [
+  { href: withBase('/'), label: '文章', path: '/' },
+  { href: withBase('/tags/'), label: '标签', path: '/tags/' },
+  { href: withBase('/archive/'), label: '归档', path: '/archive/' },
+  { href: withBase('/about/'), label: '关于', path: '/about/' }
+];
+const current = Astro.url.pathname;
+const isCurrent = (path: string) => (path === '/' ? current === withBase('/') || current === withBase('/index.html') : current.startsWith(path.replace(/\/$/, '')));
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description || SITE_TITLE} />
+    <meta name="generator" content={Astro.generator} />
+    <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+    <link rel="alternate" type="application/rss+xml" title={SITE_TITLE} href={withBase('/rss.xml')} />
+    <title>{pageTitle}</title>
+  </head>
+  <body>
+    <header class="site-head">
+      <div class="wrap site-head__inner">
+        <div>
+          <h1 class="site-title"><a href={withBase('/')}>{SITE_TITLE}</a></h1>
+          <p class="site-subtitle">{SITE_SUBTITLE}</p>
+        </div>
+        <nav class="site-nav">
+          {
+            nav.map((item) => (
+              <a href={item.href} aria-current={isCurrent(item.path) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            ))
+          }
+        </nav>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <slot />
+    </main>
+
+    <footer class="wrap site-foot">
+      <span>© {new Date().getFullYear()} 2minRain &amp; 凛</span>
+      <a href={withBase('/rss.xml')}>订阅 RSS</a>
+    </footer>
+  </body>
+</html>

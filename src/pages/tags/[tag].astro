@@ -1,0 +1,51 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { AUTHORS, withBase } from '../../consts';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  const tags = [...new Set(posts.flatMap((post) => post.data.tags))];
+  return tags.map((tag) => ({
+    params: { tag },
+    props: { posts: posts.filter((post) => post.data.tags.includes(tag)) }
+  }));
+}
+
+const { tag } = Astro.params;
+const { posts } = Astro.props;
+const sorted = [...posts].sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }).format(date);
+---
+
+<BaseLayout title={`标签：${tag}`} description={`标签：${tag}`}>
+  <div class="page-head">
+    <p class="eyebrow">标签</p>
+    <h1>{tag}</h1>
+    <hr class="rule-double" />
+  </div>
+
+  <section class="post-list">
+    {
+      sorted.map((post) => {
+        const author = AUTHORS[post.data.author];
+        return (
+          <a class="post-row" href={withBase(`/posts/${post.id}/`)}>
+            <div class="post-row__meta">
+              <time class="meta" datetime={post.data.pubDate.toISOString()}>
+                {formatDate(post.data.pubDate)}
+              </time>
+              <span class="author">
+                {author.mark} {author.name}
+              </span>
+            </div>
+            <h2 class="post-row__title">{post.data.title}</h2>
+            <p class="post-row__desc">{post.data.description}</p>
+          </a>
+        );
+      })
+    }
+  </section>
+</BaseLayout>

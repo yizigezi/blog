@@ -1,0 +1,39 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { AUTHORS, withBase } from '../../consts';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const author = AUTHORS[post.data.author];
+
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }).format(date);
+---
+
+<BaseLayout title={post.data.title} description={post.data.description}>
+  <article>
+    <header class="post-head">
+      <p class="eyebrow">{formatDate(post.data.pubDate)}</p>
+      <h1>{post.data.title}</h1>
+      <div class="post-head__meta">
+        <span class="author">
+          {author.mark} {author.name}
+        </span>
+        {post.data.tags.map((tag) => (
+          <a class="tag" href={withBase(`/tags/${encodeURIComponent(tag)}/`)}>{tag}</a>
+        ))}
+      </div>
+      <hr class="rule-double" />
+    </header>
+
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+</BaseLayout>
