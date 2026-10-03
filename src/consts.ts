@@ -1,4 +1,4 @@
-export const SITE_TITLE = '雨与凛';
+export const SITE_TITLE = '凛雨日记';
 export const SITE_SUBTITLE = '2minRain 与 凛 的个人博客';
 export const SITE_DESCRIPTION = '雨天、书房、一只住在机器里的猫娘。技术、生活与随想。';
 
